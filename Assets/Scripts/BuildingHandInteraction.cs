@@ -1,23 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+// this class has something to do with the Oculus Interaction plugin, so we use its namespace here
 namespace Oculus.Interaction
 {
+    // this class can read the hand input from Oculus Interaction plugin, and use it to manipulate the active building, regardless of its rendering mode
     public class BuildingHandInteraction : MonoBehaviour
     {
+        // the following two interactors are directly driven by Oculus Interaction, and can be found under OVRCameraRig
         public RayInteractor leftRayInteractor;
         public RayInteractor rightRayInteractor;
+        // the following two cursors are used to retrive the hand position
         public Transform leftCursor;
         public Transform rightCursor;
-        public float draft = 0.03f;
-
+        // this is the resistance for spinning when hand interaction is over
+        public float resistance = 0.03f;
+        // the building to manipulate
         public Transform building;
-
+        // these bools are used as flags to know the hand state of the last frame
         private bool bothSelected = false;
         private bool nothingSelected = true;
-
+        // two distance between two hands
         private float distance;
+
         private Vector3 buildingScaleBeforeSelection;
         private Vector3 buildingRotBeforeSelection;
 
@@ -30,17 +34,18 @@ namespace Oculus.Interaction
 
         private void Update()
         {
+            // when no building is in active, ignore any of the hand input and return
             if (building == null) return;
 
-            // Nothing selected
+            // Nothing selected, if the building is spinning last frame, keep spinning it and decrease its spinning speed, until it meets threhold and keep still
             if (leftRayInteractor.State != InteractorState.Select && rightRayInteractor.State != InteractorState.Select)
             {
                 // Keep rotating
-                if (Mathf.Abs(rotationSpeed) > 2 * draft)
+                if (Mathf.Abs(rotationSpeed) > 2 * resistance)
                 {
                     // Some models has initial rotation, so use world space vector here instead
                     building.Rotate(new Vector3(0, rotationSpeed, 0), Space.World);
-                    rotationSpeed = (rotationSpeed > 0) ? rotationSpeed - draft : rotationSpeed + draft;
+                    rotationSpeed = (rotationSpeed > 0) ? rotationSpeed - resistance : rotationSpeed + resistance;
                 }
 
                 nothingSelected = true;
@@ -48,7 +53,7 @@ namespace Oculus.Interaction
                 return;
             }
 
-            // Right selector enabled: rotation control
+            // Right selector enabled: rotation control, get the spinning angle from mathematical functions
             if (leftRayInteractor.State != InteractorState.Select && rightRayInteractor.State == InteractorState.Select)
             {
                 Transform currentSelector = rightCursor;
@@ -80,7 +85,7 @@ namespace Oculus.Interaction
                 return;
             }
 
-            // TODO: Left selector enabled: info
+            // TODO: Left selector enabled: info card interaction (not implemented yet)
             if (leftRayInteractor.State == InteractorState.Select && rightRayInteractor.State != InteractorState.Select)
             {
                 rotationSpeed = 0;
@@ -90,7 +95,7 @@ namespace Oculus.Interaction
             }
 
 
-            // both selected
+            // both selected, scale the building from the distance of two hands
             distance = Vector3.Distance(leftCursor.position, rightCursor.position);
 
             // init

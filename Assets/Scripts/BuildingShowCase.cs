@@ -2,14 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// building showcase management
 public class BuildingShowCase : MonoBehaviour
 {
+    // set the lod set here for all 4 types of LOD model (gameObject)
     public LodSet gongDian1;
     public LodSet gongDian2;
     public LodSet gongDian3;
     public LodSet tower;
     public ButtonSwitchText buttonSwitchText;
 
+    // get the reference of the buildingHandInteraction to manipulate the buildings later
     private Oculus.Interaction.BuildingHandInteraction buildingHandInteraction
     {
         get
@@ -18,11 +21,13 @@ public class BuildingShowCase : MonoBehaviour
         }
     }
 
+    // this struct contains LOD0 and LOD1 for the same building type, and gives reasonable management to them
     [System.Serializable]
     public struct LodSet
     {
         public GameObject LOD_0;
         public GameObject LOD_1;
+        // this lets the outer field know the active lod selection at the current time
         private LodSelection lodSelection;
 
         private enum LodSelection
@@ -46,6 +51,7 @@ public class BuildingShowCase : MonoBehaviour
             }
         }
 
+        // disable all LODs at once
         public void Disable()
         {
             LOD_0.SetActive(false);
@@ -53,6 +59,7 @@ public class BuildingShowCase : MonoBehaviour
             lodSelection = LodSelection.Unselected;
         }
 
+        // get the active lod from the currently selected LOD
         public GameObject GetActiveLOD()
         {
             switch (lodSelection)
@@ -68,6 +75,7 @@ public class BuildingShowCase : MonoBehaviour
             return null;
         }
 
+        // this function can show LOD0 it stored, and register it to all position it needs
         public void ShowLOD0()
         {
             if (isUsingLOD0) return;
@@ -79,6 +87,7 @@ public class BuildingShowCase : MonoBehaviour
             lodSelection = LodSelection.Lod0;
         }
 
+        // for ref see ShowLOD0
         public void ShowLOD1()
         {
             if (isUsingLOD1) return;
@@ -91,8 +100,10 @@ public class BuildingShowCase : MonoBehaviour
         }
     }
 
+    // this socket stores the lodset for the currently active building lodset, by referencing to it
     private LodSet socket;
 
+    // clear all buildings from the scene
     private void ClearRenderingArea()
     {
         gongDian1.Disable();
@@ -103,6 +114,7 @@ public class BuildingShowCase : MonoBehaviour
         buildingHandInteraction.building = null;
     }
 
+    // this function and its following can be called from button events, for activating / de-activating the aim building
     public void ShowGongdian1()
     {
         ClearRenderingArea();
@@ -179,6 +191,7 @@ public class BuildingShowCase : MonoBehaviour
         buildingHandInteraction.building = socket.GetActiveLOD().transform;
     }
 
+    // this funtion helps to switch rendering method, toggle, more precisely
     public void SwitchRenderMethod()
     {
         if (socket.isUsingLOD0)
